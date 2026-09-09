@@ -1,0 +1,96 @@
+[
+  {
+    "name": "getWeatherData",
+    "description": "Retrieve hourly temperature forecasts from Open-Meteo for coordinates. Does not retrieve current observations.",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "location": {
+          "type": "object",
+          "properties": {
+            "lat": {
+              "type": "number",
+              "minimum": -90,
+              "maximum": 90
+            },
+            "long": {
+              "type": "number",
+              "minimum": -180,
+              "maximum": 180
+            }
+          },
+          "required": ["lat", "long"],
+          "additionalProperties": false
+        }
+      },
+      "required": ["location"],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "getCurrentDatetime",
+    "description": "Return the machine local date and time. Supports %Y, %m, %d, %H, %M, %S and %%. Does not select or return a timezone.",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "dateFormat": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Defaults to %Y-%m-%d %H:%M:%S."
+        }
+      },
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "addDurationToDatetime",
+    "description": "Add a duration to a timezone-free calendar date/time. Use for date arithmetic. Returns YYYY-MM-DD HH:mm:ss. Does not perform timezone conversion.",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "datetime": {
+          "type": "string",
+          "description": "YYYY-MM-DD HH:mm:ss. For date-only demo requests use 00:00:00."
+        },
+        "days": {
+          "type": "integer",
+          "description": "Defaults to 0; negative values subtract."
+        },
+        "hours": {
+          "type": "integer",
+          "description": "Defaults to 0; negative values subtract."
+        },
+        "minutes": {
+          "type": "integer",
+          "description": "Defaults to 0; negative values subtract."
+        },
+        "seconds": {
+          "type": "integer",
+          "description": "Defaults to 0; negative values subtract."
+        }
+      },
+      "required": ["datetime"],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "setReminder",
+    "description": "Store a demo reminder in memory for this script run only. Does not persist or schedule notifications. Use the calculated date from addDurationToDatetime when needed.",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "description": {
+          "type": "string",
+          "minLength": 1
+        },
+        "remindAt": {
+          "type": "string",
+          "description": "Timezone-free YYYY-MM-DD HH:mm:ss."
+        }
+      },
+      "required": ["description", "remindAt"],
+      "additionalProperties": false
+    }
+  }
+]
