@@ -1,0 +1,25 @@
+{
+  "description": "Held-out cases for lesson 15. Never used while iterating on a prompt - only to check that an improvement generalised rather than being fitted to the training set.",
+  "cases": [
+    {
+      "id": "held-invoice-wrong",
+      "input": "The invoice for October says 12 seats but we only have 9. Can you re-issue it? Finance needs it before Friday.",
+      "expected": { "category": "billing", "urgency": "medium", "has_order_id": false }
+    },
+    {
+      "id": "held-urgent-but-not",
+      "input": "URGENT!!! Please please add dark mode. I stare at this all day and it's blinding. Take your time though.",
+      "expected": { "category": "feedback", "urgency": "low", "has_order_id": false }
+    },
+    {
+      "id": "held-login-loop",
+      "input": "Signing in redirects me back to the login page forever. Started after your update. Two of us can't work.",
+      "expected": { "category": "bug", "urgency": "high", "has_order_id": false }
+    },
+    {
+      "id": "held-order-word-only",
+      "input": "I placed an order last week and I'd like to know roughly when it leaves the warehouse. No rush.",
+      "expected": { "category": "shipping", "urgency": "low", "has_order_id": false }
+    }
+  ]
+}

@@ -1,7 +1,0 @@
-segment_type,segment_value,n,n_churned,churn_rate_pct,avg_monthly_hours,median_monthly_hours,missing_values
-overall,all,8,3,37.5,22.9,20.0,0
-tier,basic,4,2,50.0,12.8,13.0,
-tier,premium,4,1,25.0,33.0,35.5,
-hours_bucket,Low (≤10 h),3,3,100.0,,,
-hours_bucket,Medium (11-25 h),2,0,0.0,,,
-hours_bucket,High (>25 h),3,0,0.0,,,
