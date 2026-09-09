@@ -6,7 +6,19 @@
  *   npm run lesson -- 01
  */
 import { createClient } from "../../../shared/typescript/client.ts";
-import { MODEL } from "../../../shared/typescript/config.ts";
+import { FAST_MODEL, MODEL } from "../../../shared/typescript/config.ts";
+
+/**
+ * Does a configured model id match a listed one?
+ *
+ * The Models API returns a dated id for some models (`claude-haiku-4-5-20251001`)
+ * while the documented id you write in code is undated (`claude-haiku-4-5`).
+ * Both work - the undated form resolves to the dated one - so an exact-match
+ * check reports a working model as missing.
+ */
+function isAvailable(configured: string, available: readonly string[]): boolean {
+  return available.some((id) => id === configured || id.startsWith(`${configured}-`));
+}
 
 const client = createClient();
 
@@ -30,11 +42,16 @@ for await (const model of client.models.list()) {
 }
 
 console.log();
-if (available.includes(MODEL)) {
-  console.log(`CLAUDE_MODEL=${MODEL} is available to this key.`);
-} else {
-  console.log(
-    `CLAUDE_MODEL=${MODEL} was NOT listed for this key.\n` +
-      `Pick one of the ids above and set CLAUDE_MODEL in .env.`,
-  );
+for (const [variable, configured] of [
+  ["CLAUDE_MODEL", MODEL],
+  ["CLAUDE_FAST_MODEL", FAST_MODEL],
+] as const) {
+  if (isAvailable(configured, available)) {
+    console.log(`${variable}=${configured} is available to this key.`);
+  } else {
+    console.log(
+      `${variable}=${configured} was NOT listed for this key. ` +
+        `Pick one of the ids above and set ${variable} in .env.`,
+    );
+  }
 }

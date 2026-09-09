@@ -17,6 +17,10 @@ from course.triage import PROMPT_V1, PROMPT_V2, load_cases, triage
 GRADED_FIELDS = ["category", "urgency", "has_order_id"]
 
 
+def show(score: float | None) -> str:
+    return "  n/a" if score is None else f"{score:.2f}"
+
+
 def score_of(report: EvalReport, case_id: str) -> float | None:
     for result in report.results:
         if result.id == case_id:
@@ -53,7 +57,7 @@ def main() -> None:
             marker = "REGRESSED"
         else:
             marker = "same"
-        print(f"  {case.id:<16} {before} -> {after}   {marker}")
+        print(f"  {case.id:<16} {show(before)} -> {show(after)}   {marker}")
 
     delta = reports["v2"].mean_scores["fields"] - reports["v1"].mean_scores["fields"]
     print(f"\nmean delta: {delta:+.3f}")

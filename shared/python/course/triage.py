@@ -50,10 +50,16 @@ category - pick the single best fit:
   shipping  where an order is, delivery timing
   feedback  suggestions and praise with no problem to solve
 
-urgency:
-  high      money is at risk, work is blocked, or the writer says it is urgent
-  medium    the writer is blocked on something routine but can wait a day
-  low       no deadline, or the writer explicitly says there is no rush
+urgency - decide in this order, first match wins:
+  high      money is actively at risk, OR more than one person is blocked
+            right now, OR the writer states a deadline within 24 hours
+  low       the writer explicitly says there is no rush, or states no
+            deadline and describes no blockage
+  medium    everything else: one person inconvenienced or blocked, or a
+            deadline more than 24 hours away
+
+  "URGENT" in the text is not evidence by itself - weigh what the writer
+  actually describes.
 
 has_order_id - true only if the email contains an actual order identifier
   (for example "#A-77210", "order 44-9921", "#Z-31"). A bare word like

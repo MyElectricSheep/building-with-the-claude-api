@@ -29,8 +29,11 @@ SHOTS: list[dict[str, Any]] = [
         "label": {"category": "bug", "urgency": "high", "has_order_id": True},
     },
     {
-        # Routine account work, no drama.
-        "email": "How do I move my subscription to a different email address?",
+        # One person blocked, no deadline stated: the rule's `medium` band.
+        "email": (
+            "I changed my email address and now I cannot sign in at all. "
+            "How do I get back into my account?"
+        ),
         "label": {"category": "account", "urgency": "medium", "has_order_id": False},
     },
 ]

@@ -58,7 +58,10 @@ for (const testCase of cases) {
   if (before === null || after === null) marker = "?";
   else if (after > before) marker = "FIXED";
   else if (after < before) marker = "REGRESSED";
-  console.log(`  ${testCase.id.padEnd(16)} ${before} -> ${after}   ${marker}`);
+  const show = (score: number | null) => (score === null ? "  n/a" : score.toFixed(2));
+  console.log(
+    `  ${testCase.id.padEnd(16)} ${show(before)} -> ${show(after)}   ${marker}`,
+  );
 }
 
 const delta =

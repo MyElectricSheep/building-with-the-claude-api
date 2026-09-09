@@ -4,32 +4,57 @@
     {
       "id": "reset-password",
       "input": "Hi, I've tried resetting my password four times and the email never arrives. I've checked spam. Can someone help? - Dana",
-      "expected": { "category": "account", "urgency": "medium", "has_order_id": false }
+      "expected": {
+        "category": "account",
+        "urgency": "medium",
+        "has_order_id": false
+      }
     },
     {
       "id": "double-charge",
       "input": "URGENT: I was charged twice for order #A-77210 this morning. Please refund the duplicate today, my rent payment is going to bounce.",
-      "expected": { "category": "billing", "urgency": "high", "has_order_id": true }
+      "expected": {
+        "category": "billing",
+        "urgency": "high",
+        "has_order_id": true
+      }
     },
     {
       "id": "feature-idea",
       "input": "Not a problem, just an idea: it would be lovely if the export button remembered my last chosen format. No rush at all.",
-      "expected": { "category": "feedback", "urgency": "low", "has_order_id": false }
+      "expected": {
+        "category": "feedback",
+        "urgency": "low",
+        "has_order_id": false
+      }
     },
     {
       "id": "broken-upload",
       "input": "Uploads have been failing with a 500 error since yesterday afternoon. Order 44-9921 is blocked because of it. Three of us are affected.",
-      "expected": { "category": "bug", "urgency": "high", "has_order_id": true }
+      "expected": {
+        "category": "bug",
+        "urgency": "high",
+        "has_order_id": true
+      }
     },
     {
       "id": "where-is-it",
       "input": "Morning! Any update on when order #Z-31 might ship? No hurry, just curious.",
-      "expected": { "category": "shipping", "urgency": "low", "has_order_id": true }
+      "expected": {
+        "category": "shipping",
+        "urgency": "low",
+        "has_order_id": true
+      }
     },
     {
       "id": "cancel-plan",
       "input": "I'd like to cancel my subscription at the end of the current period. What do I need to do?",
-      "expected": { "category": "account", "urgency": "medium", "has_order_id": false }
+      "expected": {
+        "category": "account",
+        "urgency": "low",
+        "has_order_id": false
+      }
     }
-  ]
+  ],
+  "labelling_rule": "Urgency labels follow one decidable rule, applied first-match-wins: HIGH if money is actively at risk, more than one person is blocked right now, or a deadline within 24 hours is stated. LOW if the writer says there is no rush, or states no deadline and describes no blockage. MEDIUM otherwise. The word 'URGENT' is not evidence by itself. If you disagree with a label, the rule is what to argue with - a gold label you cannot defend from a written rule is noise, not ground truth."
 }
