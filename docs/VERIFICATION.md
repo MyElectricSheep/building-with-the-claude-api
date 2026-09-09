@@ -103,7 +103,7 @@ The runs worth citing, because they prove a claim rather than merely exiting 0:
 | **48** | All three transports — in-process, stdio subprocess, Streamable HTTP on a real port — in both languages                                                                         |
 | **50** | The real `ModuleNotFoundError` for `mcp.server.fastmcp`, whose message names `MCPServer` and the `mcp<2` pin                                                                    |
 | **54** | The binary `blob` branch fired on a real PNG resource                                                                                                                           |
-| **61** | 7/9 → 8/9 → 7/9, stopping on the round limit — the loop _and_ the bound                                                                                                         |
+| **61** | 7/9 → 8/9 → 7/9, stopping on the round limit — the loop and the bound. Varies by run: a later run passed 9/9 first time, and the example says so rather than pretending         |
 | **62** | 3.4× speedup, sequential vs concurrent, same specialists and input                                                                                                              |
 | **63** | All four gates passed with real content: 12 events, justified SEV1, 331 words, 8 owned actions                                                                                  |
 | **64** | All four routes correct including the `other` fallback, with `effort` shown as `n/a (unsupported)` on the Haiku branches                                                        |

@@ -75,6 +75,13 @@ It prints each round's verdict and the specific gaps, so you can watch the draft
 improve — and it stops on a round limit, because "loop until the grader is happy" with
 no bound is a way to spend money.
 
+**Whether it iterates at all varies between runs, and the example says which happened.**
+On the runs this repository was verified against, Python went 7/9 → 8/9 → 7/9 and hit the
+round limit, while TypeScript passed 9/9 first time. Both are valid outcomes of the same
+code against a non-deterministic model. If round 1 passes, the example tells you what
+that means: the rubric is too easy for this model, and a rubric nothing fails measures
+nothing. Tighten an item or lower the word budget and run it again.
+
 Two details worth copying:
 
 - The evaluator returns **structured output** with an explicit `pass`/`fail` per rubric

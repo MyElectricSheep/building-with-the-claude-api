@@ -76,6 +76,12 @@ because you used to reach for `temperature=0.2`, see lesson 6.
   thinking summaries, output tokens and wall-clock for each, plus a run with `display`
   left at its default so the empty-thinking-text surprise is visible rather than
   described.
+
+> **Do not read the per-effort token counts as a dial.** On one verification run `low`
+> used _more_ output tokens than `high` (5,356 vs 3,051) — a lower effort can flail
+> longer on a proof. Effort shifts the distribution of spend across many requests; it is
+> not a monotonic per-request budget, and one sample cannot show you the trend.
+
 - `legacy.*` — the Academy call, preserved. Expected to 400 on a current model; it
   prints the error and names the model where it would still work.
 
