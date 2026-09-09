@@ -26,12 +26,21 @@ RUBRIC = [
     ("comms_gap", "Notes that the status page was never updated."),
     ("blameless", "Describes what made the mistake easy to make, not who made it."),
     ("actions", "Proposes at least two specific, assignable follow-up actions."),
+    (
+        "quantified",
+        "Cites at least four distinct figures from the notes "
+        "(times, percentages, counts).",
+    ),
+    (
+        "counterfactual",
+        "States the specific change to the canary that would have caught this.",
+    ),
 ]
 
 WRITER_SYSTEM = """You write blameless incident retrospectives.
 
 Use only the supplied notes. Be specific: times, code paths, numbers. No filler,
-no apologies, no 'lessons learned' section. Under 350 words."""
+no apologies, no 'lessons learned' section. Under 220 words."""
 
 GRADE_SCHEMA = {
     "type": "object",
@@ -120,7 +129,15 @@ def main() -> None:
             print(f"  fail  {item['id']:<14} {item['gap']}")
 
         if not failed:
-            print("\nAll rubric items pass.\n")
+            if round_number == 1:
+                print(
+                    "\nAll items passed on the first round, so the loop never "
+                    "iterated.\nThat is a valid outcome - and a sign the rubric "
+                    "is too easy for this\nmodel. Tighten it until round 1 fails; "
+                    "a rubric nothing fails measures\nnothing.\n"
+                )
+            else:
+                print("\nAll rubric items pass.\n")
             break
         feedback = [f"{item['id']}: {item['gap']}" for item in failed]
     else:

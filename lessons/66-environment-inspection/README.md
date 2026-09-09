@@ -75,9 +75,15 @@ The same task — fix a bug in a sandboxed file — run two ways:
 2. **inspecting**: act, then **read the file back and run the code**, and feed the real
    result to the model
 
-The task is chosen so the blind agent _plausibly_ succeeds and actually does not: the
-edit it makes is reasonable and leaves a second, subtler bug. The inspecting agent finds
-it because the test fails.
+**The blind agent often succeeds, and that is not the point.** On the run this repository
+was verified against, both agents ended with `PASS: all checks`. A lesson that needed the
+blind one to fail would be a rigged one.
+
+What differs is what each agent _knew_. The blind agent asserted success. The inspecting
+agent saw `FAIL`, kept going, and stopped on evidence. The only reason you know whether
+the blind agent was right is the `ACTUAL:` line — which the script computes by running
+the code itself, after the agent has finished. In production nobody runs that line for
+you.
 
 The observation here is running the file, not a screenshot — which is the point of the
 correction above.

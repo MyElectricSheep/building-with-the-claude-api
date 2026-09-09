@@ -146,12 +146,20 @@ def main() -> None:
     )
 
     print("=== verdicts ===")
-    print(f"  blind:      {blind}")
-    print(f"  inspecting: {inspecting}")
+    print(f"  blind:      {blind.splitlines()[0]}")
+    print(f"  inspecting: {inspecting.splitlines()[0]}")
+
+    blind_ok = blind.startswith("PASS")
     print(
-        "\nThe blind agent's edit is usually reasonable and usually incomplete -\n"
-        "it has no way to find out. That is the whole lesson: an agent without\n"
-        "observable feedback is a script that improvises.\n\n"
+        "\nThe blind agent often succeeds - it did on this run if the line above\n"
+        f"says PASS ({'it did' if blind_ok else 'it did not'}). That is not the\n"
+        "point, and a lesson that needed it to fail would be a rigged one.\n\n"
+        "The point is that the blind agent CLAIMED success and had no way to\n"
+        "know. The only reason you know whether it was right is the ACTUAL line -\n"
+        "which this script computed by running the code itself, after the agent\n"
+        "had finished. In production nobody runs that line for you.\n\n"
+        "The inspecting agent saw FAIL, kept going, and stopped on evidence.\n"
+        "Same outcome, completely different epistemics.\n\n"
         "And note WHAT the observation was: running the code. Reaching for a\n"
         "screenshot when you could read the file back is a lossier, more\n"
         "expensive loop, not a more sophisticated one."

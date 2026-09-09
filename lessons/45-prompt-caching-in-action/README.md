@@ -66,6 +66,13 @@ rather than a paragraph.
 The interesting column is `cache_read_input_tokens` on iterations 2+ of the loop: that
 is where an agent gets its money back.
 
+**One artifact to read past.** The four runs share a system prompt, so run 4 reads a
+cache that runs 2 and 3 already paid to write. On the run this repository was verified
+against that made `ttl=1h` look three times better than automatic caching (≈4,500 vs
+≈14,000 billed-equivalent) when most of the difference is simply that it wrote nothing.
+Compare runs 1 and 2 for the honest before/after; to compare TTLs properly you need
+separate processes, and a wait longer than five minutes between them.
+
 ## Python vs TypeScript
 
 Identical.
