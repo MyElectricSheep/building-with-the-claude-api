@@ -191,6 +191,8 @@ for (const path of codeFiles) {
   if (MODEL_ALLOWLIST.has(relativePath)) continue;
   // legacy.* files pin an old model on purpose - that IS the lesson.
   if (/\/legacy\.(ts|py)$/.test(relativePath)) continue;
+  // A test asserting which models support a feature has to name model ids.
+  if (/\.test\.ts$|(^|\/)test_[^/]+\.py$/.test(relativePath)) continue;
   const source = readFileSync(path, "utf8");
   for (const [, model] of source.matchAll(MODEL_PATTERN)) {
     fail(

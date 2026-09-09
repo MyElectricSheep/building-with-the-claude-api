@@ -14,6 +14,7 @@ import base64
 import math
 import struct
 
+import anthropic
 from course.blocks import text_of
 from course.config import MODEL, REPO_ROOT, create_client
 
@@ -67,20 +68,24 @@ def main() -> None:
         "type": "image",
         "source": {"type": "file", "file_id": uploaded.id},
     }
-    file_tokens = client.messages.count_tokens(
-        model=MODEL,
-        messages=[
-            {
-                "role": "user",
-                "content": [file_block, {"type": "text", "text": QUESTION}],
-            }
-        ],
-    ).input_tokens
-    print(f"2. file_id    {file_tokens} input tokens   (id {uploaded.id})")
-    print(
-        "   Same token cost - the image still enters the context. What a file_id\n"
-        "   saves is RESENDING the bytes on every turn of a conversation.\n"
-    )
+    print(f"2. file_id    uploaded as {uploaded.id}")
+    # count_tokens does NOT accept a `file` source - it returns
+    #   400 "File sources are not supported in the token counting endpoint."
+    # messages.create accepts the very same block, so measure it from usage.
+    try:
+        client.messages.count_tokens(
+            model=MODEL,
+            messages=[
+                {
+                    "role": "user",
+                    "content": [file_block, {"type": "text", "text": QUESTION}],
+                }
+            ],
+        )
+        print("   count_tokens accepted a file source (check the current docs)")
+    except anthropic.BadRequestError as error:
+        detail = getattr(error, "body", {}).get("error", {}).get("message", "")
+        print(f"   count_tokens refuses a file source: {detail or error.message}")
 
     response = client.messages.create(
         model=MODEL,
@@ -91,6 +96,12 @@ def main() -> None:
                 "content": [file_block, {"type": "text", "text": QUESTION}],
             }
         ],
+    )
+    file_tokens = response.usage.input_tokens
+    print(f"   measured from usage instead: {file_tokens} input tokens")
+    print(
+        "   Same token cost as base64 - the image still enters the context. What\n"
+        "   a file_id saves is RESENDING the bytes on every turn.\n"
     )
     print(f"answer: {text_of(response).strip()}\n")
 

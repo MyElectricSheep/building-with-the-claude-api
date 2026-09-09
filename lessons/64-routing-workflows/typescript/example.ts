@@ -15,7 +15,11 @@ import {
   toolUses,
 } from "../../../shared/typescript/blocks.ts";
 import { createClient } from "../../../shared/typescript/client.ts";
-import { FAST_MODEL, MODEL } from "../../../shared/typescript/config.ts";
+import {
+  FAST_MODEL,
+  MODEL,
+  supportsEffort,
+} from "../../../shared/typescript/config.ts";
 
 const MESSAGES = [
   "How do I change the email address on my account?",
@@ -120,11 +124,13 @@ for (const message of MESSAGES) {
   console.log(`> ${message}`);
 
   // 1. Route. Cheap model, tiny max_tokens, low effort, enum-constrained.
+  // The router runs on the cheap model, and Haiku 4.5 rejects `effort`
+  // outright - so build output_config for the model actually in use.
   const routed = await client.messages.create({
     model: FAST_MODEL,
     max_tokens: 200,
     output_config: {
-      effort: "low",
+      ...(supportsEffort(FAST_MODEL) ? { effort: "low" as const } : {}),
       format: { type: "json_schema", schema: ROUTE_SCHEMA },
     },
     system: ROUTER_SYSTEM,
@@ -134,9 +140,10 @@ for (const message of MESSAGES) {
   routerTokens += routed.usage.input_tokens + routed.usage.output_tokens;
   const branch = BRANCHES[decision.branch]!;
   const toolNames = branch.tools.map((tool) => tool.name);
+  const effortNote = supportsEffort(branch.model) ? branch.effort : "n/a (unsupported)";
   console.log(
     `  route -> ${decision.branch.padEnd(6)} ` +
-      `(model ${branch.model}, effort ${branch.effort}, ` +
+      `(model ${branch.model}, effort ${effortNote}, ` +
       `tools ${toolNames.length > 0 ? toolNames.join(", ") : "none"})`,
   );
   console.log(`  why:     ${decision.why}`);
@@ -148,7 +155,9 @@ for (const message of MESSAGES) {
     response = await client.messages.create({
       model: branch.model,
       max_tokens: 800,
-      output_config: { effort: branch.effort },
+      ...(supportsEffort(branch.model)
+        ? { output_config: { effort: branch.effort } }
+        : {}),
       system: branch.system,
       tools: branch.tools,
       messages: conversation,
@@ -179,6 +188,11 @@ for (const message of MESSAGES) {
 
 console.log(
   `router cost across ${MESSAGES.length} messages: ${routerTokens} tokens total`,
+);
+console.log(
+  "\nNote the effort column: `effort` is NOT universal. Claude Haiku 4.5\n" +
+    "rejects it with a 400, which is exactly the kind of thing that bites in\n" +
+    "a router - the whole point is that branches use different models.\n",
 );
 console.log(
   "\nThe router runs on every request, so it must be cheap, constrained by\n" +

@@ -63,8 +63,16 @@ toward token usage. If you show the output to end users, show the citations.
 
 The same question run twice — `web_search_20250305` and `web_search_20260318` — printing
 the block census, the number of searches (`usage.server_tool_use.web_search_requests`),
-input/output tokens, and the citations. The token comparison is the point: dynamic
-filtering is a cost feature.
+input/output tokens, tokens **per search**, and the citations.
+
+**The raw token totals are not a benchmark, and the example says so.** The model chooses
+how many searches to run, and on the run this repository was verified against the newer
+version searched _twice_ and therefore used _more_ input tokens — in both languages. A
+single-question A/B mostly measures search count. Dynamic filtering works per search, so
+`input tokens per search` is the number to normalise on, over many questions.
+
+Use the newest version your model supports because of what it can do, not because of a
+saving you can demonstrate in ten seconds.
 
 It also handles the error-shaped result and `pause_turn` explicitly rather than assuming
 the happy path.

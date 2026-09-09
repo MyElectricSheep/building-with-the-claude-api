@@ -57,3 +57,17 @@ export function requireEnv(name: string): string {
   }
   return value;
 }
+
+/**
+ * Does a model accept `output_config.effort`?
+ *
+ * Effort is not universal. Claude Haiku 4.5 rejects it with
+ * `400 This model does not support the effort parameter.` - verified live.
+ * It is accepted on Sonnet 4.6, Sonnet 5, Opus 4.6+ and the Fable family.
+ *
+ * This matters most when routing (lesson 64), where the whole point is that
+ * different branches use different models.
+ */
+export function supportsEffort(model: string): boolean {
+  return !/^claude-haiku-/.test(model) && !/^claude-sonnet-4-5/.test(model);
+}

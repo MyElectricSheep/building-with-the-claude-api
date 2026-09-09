@@ -14,7 +14,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from course.blocks import format_usage, parse_structured, text_of, tool_uses
-from course.config import FAST_MODEL, MODEL, create_client
+from course.config import FAST_MODEL, MODEL, create_client, supports_effort
 
 MESSAGES = [
     "How do I change the email address on my account?",
@@ -123,22 +123,29 @@ def main() -> None:
         print(f"> {message}")
 
         # 1. Route. Cheap model, tiny max_tokens, low effort, enum-constrained.
+        # The router runs on the cheap model, and Haiku 4.5 rejects `effort`
+        # outright - so build output_config for the model actually in use.
+        router_config: dict[str, Any] = {
+            "format": {"type": "json_schema", "schema": ROUTE_SCHEMA}
+        }
+        if supports_effort(FAST_MODEL):
+            router_config["effort"] = "low"
         routed = client.messages.create(
             model=FAST_MODEL,
             max_tokens=200,
-            output_config={
-                "effort": "low",
-                "format": {"type": "json_schema", "schema": ROUTE_SCHEMA},
-            },
+            output_config=router_config,
             system=ROUTER_SYSTEM,
             messages=[{"role": "user", "content": json.dumps({"message": message})}],
         )
         decision = parse_structured(routed)
         router_tokens += routed.usage.input_tokens + routed.usage.output_tokens
         branch = BRANCHES[decision["branch"]]
+        effort_note = (
+            branch.effort if supports_effort(branch.model) else "n/a (unsupported)"
+        )
         print(
             f"  route -> {decision['branch']:<6} "
-            f"(model {branch.model}, effort {branch.effort}, "
+            f"(model {branch.model}, effort {effort_note}, "
             f"tools {[t['name'] for t in branch.tools] or 'none'})"
         )
         print(f"  why:     {decision['why']}")
@@ -146,13 +153,16 @@ def main() -> None:
         # 2. Handle, on the branch's own configuration.
         messages: list[dict[str, Any]] = [{"role": "user", "content": message}]
         for _ in range(4):
+            branch_kwargs: dict[str, Any] = {}
+            if supports_effort(branch.model):
+                branch_kwargs["output_config"] = {"effort": branch.effort}
             response = client.messages.create(
                 model=branch.model,
                 max_tokens=800,
-                output_config={"effort": branch.effort},
                 system=branch.system,
                 tools=branch.tools or [],
                 messages=messages,
+                **branch_kwargs,
             )
             calls = tool_uses(response)
             if not calls:
@@ -177,6 +187,9 @@ def main() -> None:
 
     print(f"router cost across {len(MESSAGES)} messages: {router_tokens} tokens total")
     print(
+        "\nNote the effort column: `effort` is NOT universal. Claude Haiku 4.5\n"
+        "rejects it with a 400, which is exactly the kind of thing that bites in\n"
+        "a router - the whole point is that branches use different models.\n"
         "\nThe router runs on every request, so it must be cheap, constrained by\n"
         "an enum, and it must have a fallback. The `other` branch is not\n"
         "decoration: without it, the weather question would have been forced\n"

@@ -68,11 +68,11 @@ whole file body, and prints the fragment count, time to first fragment, payload 
 fragments per KB for each, plus what a mid-stream parse attempt does at the halfway
 point.
 
-**Read the timings with care.** The two runs generate *different* changelogs, so this is
+**Read the timings with care.** The two runs generate _different_ changelogs, so this is
 one sample of two different payloads, not a benchmark. That is why the example prints
 payload size and a normalised `fragments per KB` — and why you should re-run a few times
 before believing any gap. On the run this repository was verified against, the eager mode
-produced *fewer, larger* fragments and a *higher* time-to-first-fragment, which is a good
+produced _fewer, larger_ fragments and a _higher_ time-to-first-fragment, which is a good
 reminder that `eager_input_streaming` does not promise finer granularity: what it changes
 is that the API stops waiting to validate JSON before emitting.
 

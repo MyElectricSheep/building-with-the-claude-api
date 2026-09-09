@@ -68,10 +68,16 @@ async function run(label: string, toolType: string): Promise<void> {
   if (!response) throw new Error("no response");
 
   console.log(`  blocks:   ${blockTypes(response).join(", ")}`);
-  console.log(
-    `  searches: ${response.usage.server_tool_use?.web_search_requests ?? 0}`,
-  );
+  const searches = response.usage.server_tool_use?.web_search_requests ?? 0;
+  console.log(`  searches: ${searches}`);
   console.log(`  usage:    ${formatUsage(response.usage)}`);
+  // Normalise: the model decides HOW MANY searches to run, so raw input tokens
+  // mostly measure that, not how well results were filtered.
+  if (searches > 0) {
+    console.log(
+      `  input tokens per search: ${Math.round(response.usage.input_tokens / searches)}`,
+    );
+  }
 
   // Server-tool errors arrive as HTTP 200 with an error OBJECT where a LIST of
   // results would be. Branch on that before indexing.
@@ -91,8 +97,15 @@ for (const [label, toolType] of VARIANTS) {
 }
 
 console.log(
-  "Compare the input token counts. Dynamic filtering (20260209 and later)\n" +
-    "runs code that filters results before they enter the context window, so\n" +
-    "a search-heavy request costs less. That is the reason to move versions -\n" +
-    "not that the old one stopped working.",
+  "Do NOT read the raw token counts as a benchmark. The model chooses how\n" +
+    "many searches to run, and it often runs more with the newer tool - so a\n" +
+    "single-question A/B mostly measures search count. On the run this\n" +
+    "repository was verified against, the newer version used MORE input\n" +
+    "tokens because it searched twice.\n\n" +
+    "What dynamic filtering (20260209 and later) actually does is run code\n" +
+    "that filters each search's results before they enter the context window.\n" +
+    "To see that, compare `input tokens per search` across many questions -\n" +
+    "not totals on one.\n\n" +
+    "The version to use is still the newest your model supports; the reason\n" +
+    "is capability, not a benchmark you can run in ten seconds.",
 );

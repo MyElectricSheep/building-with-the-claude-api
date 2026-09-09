@@ -62,10 +62,15 @@ That is a real cost difference, and downsampling before upload is the lever.
 
 ## The current implementation
 
-The same image sent three ways — base64, Files API `file_id`, and (for a public URL)
-the `url` form — printing input tokens for each so the payload difference is visible,
-plus a multi-image comparison and a token estimate from the patch formula checked
-against `count_tokens`.
+The same image sent two ways — base64 and Files API `file_id` — with a multi-image
+comparison and the patch formula checked against a real measurement.
+
+> **`count_tokens` rejects a `file` source**: `400 File sources are not supported in the
+token counting endpoint.` — verified live, while `messages.create` accepts the
+> identical block. So the example counts the base64 form with `count_tokens`, and
+> measures the `file_id` form from `usage.input_tokens` instead. It comes out the same
+> (733 tokens either way on the verification run), which is the actual point: a `file_id`
+> saves the **upload**, not the tokens.
 
 ## Python vs TypeScript
 

@@ -11,8 +11,7 @@ import { createReadStream, readFileSync } from "node:fs";
 import { basename, dirname, join } from "node:path";
 import { parseArgs } from "node:util";
 import { fileURLToPath } from "node:url";
-import type Anthropic from "@anthropic-ai/sdk";
-import { toFile } from "@anthropic-ai/sdk";
+import Anthropic, { toFile } from "@anthropic-ai/sdk";
 import { textOf } from "../../../shared/typescript/blocks.ts";
 import { createClient } from "../../../shared/typescript/client.ts";
 import { MODEL } from "../../../shared/typescript/config.ts";
@@ -68,23 +67,39 @@ const fileBlock: Anthropic.ImageBlockParam = {
   type: "image",
   source: { type: "file", file_id: uploaded.id },
 };
-const fileCount = await client.messages.countTokens({
-  model: MODEL,
-  messages: [{ role: "user", content: [fileBlock, { type: "text", text: QUESTION }] }],
-});
-console.log(
-  `2. file_id    ${fileCount.input_tokens} input tokens   (id ${uploaded.id})`,
-);
-console.log(
-  "   Same token cost - the image still enters the context. What a file_id\n" +
-    "   saves is RESENDING the bytes on every turn of a conversation.\n",
-);
+console.log(`2. file_id    uploaded as ${uploaded.id}`);
+// countTokens does NOT accept a `file` source - it returns
+//   400 "File sources are not supported in the token counting endpoint."
+// messages.create accepts the very same block, so measure it from usage.
+try {
+  await client.messages.countTokens({
+    model: MODEL,
+    messages: [
+      { role: "user", content: [fileBlock, { type: "text", text: QUESTION }] },
+    ],
+  });
+  console.log("   countTokens accepted a file source (check the current docs)");
+} catch (error) {
+  if (error instanceof Anthropic.BadRequestError) {
+    const detail = /"message":"([^"]+)"/.exec(error.message)?.[1] ?? error.message;
+    console.log(`   countTokens refuses a file source: ${detail}`);
+  } else {
+    throw error;
+  }
+}
 
 const response = await client.messages.create({
   model: MODEL,
   max_tokens: 300,
   messages: [{ role: "user", content: [fileBlock, { type: "text", text: QUESTION }] }],
 });
+console.log(
+  `   measured from usage instead: ${response.usage.input_tokens} input tokens`,
+);
+console.log(
+  "   Same token cost as base64 - the image still enters the context. What\n" +
+    "   a file_id saves is RESENDING the bytes on every turn.\n",
+);
 console.log(`answer: ${textOf(response).trim()}\n`);
 
 // 3. The patch formula, checked.

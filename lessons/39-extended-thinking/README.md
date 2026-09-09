@@ -47,6 +47,12 @@ response = client.messages.create(
 
 `effort` lives **inside `output_config`**, not at the top level. Default is `high`.
 
+> **`effort` is not universal.** `claude-haiku-4-5` rejects it outright with
+> `400 This model does not support the effort parameter.` — verified live. It is accepted
+> on Sonnet 4.6, Sonnet 5, Opus 4.6+ and the Fable family. `supportsEffort()` /
+> `supports_effort()` in `shared/*/config` encode this, and lesson 64 shows why it
+> matters: a router mixes models by design.
+
 ### Three things that surprise people
 
 1. **`display` defaults to `"omitted"`** on Sonnet 5, Opus 5, Opus 4.7/4.8 and the

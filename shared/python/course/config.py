@@ -62,3 +62,16 @@ def create_client():  # noqa: ANN201 - anthropic is an optional import cost
 
     require_env("ANTHROPIC_API_KEY")
     return anthropic.Anthropic()
+
+
+def supports_effort(model: str) -> bool:
+    """Does a model accept ``output_config.effort``?
+
+    Effort is not universal. Claude Haiku 4.5 rejects it with
+    ``400 This model does not support the effort parameter.`` - verified live.
+    It is accepted on Sonnet 4.6, Sonnet 5, Opus 4.6+ and the Fable family.
+
+    This matters most when routing (lesson 64), where the whole point is that
+    different branches use different models.
+    """
+    return not model.startswith(("claude-haiku-", "claude-sonnet-4-5"))

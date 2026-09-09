@@ -60,6 +60,23 @@ docs changed the answer.
 | 9   | Claude Code: "native installation is now the recommended route"                              | Confirmed. Worth adding: the npm package installs **the same native binary** and `claude` does not invoke Node at runtime, so "Claude Code needs Node" is wrong in both directions. Native installs **auto-update**; Homebrew/WinGet/apt/dnf/apk do not                                                                                                           |
 | 10  | Prefill "not supported on Claude 4.6+/Sonnet 5"                                              | Confirmed and broader: rejected on Fable 5/5.1, Opus 5, Opus 4.6/4.7/4.8, Sonnet 5 and Sonnet 4.6. Note what is _not_ deprecated alongside it: complete prior assistant turns, and `stop_sequences` itself                                                                                                                                                        |
 
+### Found by running the code, not by reading docs
+
+Three further facts surfaced only during the live pass, and each had made this
+repository's own first draft wrong:
+
+| Finding                                                                                                                                                                                     | Evidence                                                                                                                                                                      |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **`output_config.effort` is not universal.** `claude-haiku-4-5` returns `400 This model does not support the effort parameter.` It is accepted on Sonnet 4.6, Sonnet 5, Opus 4.6+ and Fable | Verified live against all four. Bites hardest when **routing** (lesson 64), where the point is mixing models — `supportsEffort()` / `supports_effort()` encode it, with tests |
+| **`count_tokens` rejects a `file` source.** `400 File sources are not supported in the token counting endpoint.` — while `messages.create` accepts the identical block                      | Verified live. Lesson 40 now measures a `file_id` image from `usage.input_tokens` instead, and teaches the limit                                                              |
+| **Adaptive thinking genuinely decides.** An easy question returns _no_ `thinking` blocks at all, so a lesson demonstrating thinking needs a genuinely hard prompt                           | Lesson 39's original problem produced 0 blocks on Sonnet 5; the replacement produces 1 readable block at both efforts                                                         |
+
+And a methodological one, which cost three lessons a claim each: **a single-sample A/B
+against a non-deterministic model does not support a performance claim.** Lessons 29, 31
+and 39 all asserted one. In each case the live run either contradicted it or measured a
+confound (different payloads, different search counts). All three now report the
+normalising figure and say plainly what the measurement can and cannot show.
+
 One thing the prior audit got exactly right and is worth repeating: **the course's
 concepts are sound**. Everything below is about executable syntax, not architecture.
 
