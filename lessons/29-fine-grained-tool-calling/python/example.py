@@ -87,15 +87,15 @@ def stream_once(client, eager: bool) -> None:  # noqa: ANN001
                         print(f"  block {event.index} never became valid JSON")
 
     elapsed = time.monotonic() - started
+    payload = sum(len(value.get("contents", "")) for value in parsed.values())
+    rate = f"{fragments * 1024 / payload:.1f}" if payload else "n/a"
     print(f"  input_json_delta events: {fragments}")
     print(f"  first fragment after:    {(first_fragment_at or 0) * 1000:.0f} ms")
     print(f"  total:                   {elapsed * 1000:.0f} ms")
+    print(f"  payload:                 {payload} chars")
+    print(f"  fragments per KB:        {rate}")
     for index, value in parsed.items():
-        contents = value.get("contents", "")
-        print(
-            f"  block {index}: path={value.get('path')!r} "
-            f"contents={len(contents)} chars"
-        )
+        print(f"  block {index}: path={value.get('path')!r}")
     print()
 
 
@@ -104,10 +104,17 @@ def main() -> None:
     stream_once(client, eager=False)
     stream_once(client, eager=True)
     print(
-        "Eager streaming trades validity-while-streaming for a lower time to\n"
-        "first fragment. Either way: accumulate by event.index and parse only at\n"
-        "content_block_stop. Partial JSON is not safe to execute, and a truncated\n"
-        "eager stream may never become valid at all."
+        "Read those timings with care: the two runs generate DIFFERENT\n"
+        "changelogs, so this is one sample of two different payloads, not a\n"
+        "benchmark. Compare `fragments per KB`, and re-run a few times before\n"
+        "believing any gap.\n\n"
+        "What eager_input_streaming actually changes is that the API stops\n"
+        "waiting to validate JSON before emitting - it does NOT promise more,\n"
+        "smaller chunks, and you may well see fewer, larger ones.\n\n"
+        "The unambiguous demonstration is the mid-stream parse above: it fails\n"
+        "in both modes. Accumulate by event.index and parse only at\n"
+        "content_block_stop. Partial JSON is not safe to execute, and a\n"
+        "truncated eager stream may never become valid at all."
     )
 
 

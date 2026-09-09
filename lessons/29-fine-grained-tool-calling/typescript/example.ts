@@ -93,14 +93,19 @@ async function streamOnce(eager: boolean): Promise<void> {
 
   await stream.finalMessage();
   const elapsed = Date.now() - started;
+  const payload = [...parsed.values()].reduce(
+    (total, value) => total + (value.contents?.length ?? 0),
+    0,
+  );
   console.log(`  input_json_delta events: ${fragments}`);
   console.log(`  first fragment after:    ${firstFragmentAt ?? 0} ms`);
   console.log(`  total:                   ${elapsed} ms`);
+  console.log(`  payload:                 ${payload} chars`);
+  console.log(
+    `  fragments per KB:        ${payload > 0 ? ((fragments * 1024) / payload).toFixed(1) : "n/a"}`,
+  );
   for (const [index, value] of parsed) {
-    console.log(
-      `  block ${index}: path=${JSON.stringify(value.path)} ` +
-        `contents=${value.contents?.length ?? 0} chars`,
-    );
+    console.log(`  block ${index}: path=${JSON.stringify(value.path)}`);
   }
   console.log();
 }
@@ -108,8 +113,14 @@ async function streamOnce(eager: boolean): Promise<void> {
 await streamOnce(false);
 await streamOnce(true);
 console.log(
-  "Eager streaming trades validity-while-streaming for a lower time to\n" +
-    "first fragment. Either way: accumulate by event.index and parse only at\n" +
-    "content_block_stop. Partial JSON is not safe to execute, and a truncated\n" +
-    "eager stream may never become valid at all.",
+  "Read those timings with care: the two runs generate DIFFERENT changelogs,\n" +
+    "so this is one sample of two different payloads, not a benchmark. Compare\n" +
+    "`fragments per KB`, and re-run a few times before believing any gap.\n\n" +
+    "What eager_input_streaming actually changes is that the API stops waiting\n" +
+    "to validate JSON before emitting - it does NOT promise more, smaller\n" +
+    "chunks, and you may well see fewer, larger ones.\n\n" +
+    "The unambiguous demonstration is the mid-stream parse above: it fails in\n" +
+    "both modes. Accumulate by event.index and parse only at content_block_stop.\n" +
+    "Partial JSON is not safe to execute, and a truncated eager stream may\n" +
+    "never become valid at all.",
 );

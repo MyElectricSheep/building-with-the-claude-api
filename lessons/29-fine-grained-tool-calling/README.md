@@ -64,13 +64,20 @@ valid input at all. Partial JSON is not safe to execute.
 ## The current implementation
 
 Streams the same request twice — buffered and eager — with a tool whose argument is a
-whole file body, and prints:
+whole file body, and prints the fragment count, time to first fragment, payload size and
+fragments per KB for each, plus what a mid-stream parse attempt does at the halfway
+point.
 
-- how many `input_json_delta` events arrived,
-- how long until the **first** fragment (the number eager streaming improves),
-- what a mid-stream parse attempt does at the halfway point (it fails — that is the
-  demonstration),
-- and the correctly accumulated, parsed result at `content_block_stop`.
+**Read the timings with care.** The two runs generate *different* changelogs, so this is
+one sample of two different payloads, not a benchmark. That is why the example prints
+payload size and a normalised `fragments per KB` — and why you should re-run a few times
+before believing any gap. On the run this repository was verified against, the eager mode
+produced *fewer, larger* fragments and a *higher* time-to-first-fragment, which is a good
+reminder that `eager_input_streaming` does not promise finer granularity: what it changes
+is that the API stops waiting to validate JSON before emitting.
+
+The unambiguous demonstration is the **mid-stream parse**, which fails in both modes —
+that is the part you should take away.
 
 ## Python vs TypeScript
 

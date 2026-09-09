@@ -12,14 +12,13 @@ import { formatUsage, textOf, thinkingOf } from "../../../shared/typescript/bloc
 import { createClient } from "../../../shared/typescript/client.ts";
 import { MODEL } from "../../../shared/typescript/config.ts";
 
+// Adaptive thinking DECIDES whether to think. An easy question gets no
+// thinking blocks at all - which is the feature working, not a failure. This
+// problem is hard enough to reliably trigger it.
 const PROBLEM =
-  "A deploy pipeline runs 4 minutes of unit tests, then 9 minutes of " +
-  "integration tests, then a rollout in three stages 10 minutes apart. " +
-  "The rollout aborts if canary error rate exceeds 0.5%. If a bad commit " +
-  "lands at 14:00 and the canary trips at the second stage, what is the " +
-  "earliest wall-clock time a rollback could complete, given a rollback " +
-  "takes 90 seconds and someone must first notice the abort? State your " +
-  "assumptions.";
+  "A 3x3 grid holds each of the numbers 1-9 exactly once. Every row sums to " +
+  "15 and both diagonals sum to 15. The centre cell is not 5. Either produce " +
+  "such a grid or prove none exists. Reason carefully and show the argument.";
 
 const { values } = parseArgs({
   args: process.argv.slice(2),
@@ -42,11 +41,19 @@ async function run(effort: Effort, display: "summarized" | undefined) {
   });
   const summaries = thinkingOf(response);
 
+  const blocks = response.content.filter((block) => block.type === "thinking");
   console.log(`--- effort=${effort} display=${display ?? "(default)"} ---`);
   console.log(`  usage:    ${formatUsage(response.usage)}`);
   console.log(`  wall:     ${((Date.now() - started) / 1000).toFixed(1)}s`);
-  console.log(`  thinking: ${summaries.length} summarised block(s)`);
-  if (summaries[0]) console.log(`    ${summaries[0].slice(0, 180)}...`);
+  console.log(
+    `  thinking: ${blocks.length} block(s), ${summaries.length} with readable text`,
+  );
+  if (summaries[0]) {
+    console.log(`    ${summaries[0].slice(0, 180)}...`);
+  } else if (blocks.length === 0) {
+    // Not a failure: adaptive thinking decided this did not need it.
+    console.log("    (adaptive thinking chose not to think - that is the feature)");
+  }
   console.log(`  answer:   ${textOf(response).trim().slice(0, 220)}...\n`);
   return response;
 }
@@ -71,8 +78,12 @@ console.log(`  thinking blocks present: ${thinkingBlocks.length}`);
 console.log(`  with readable text:      ${nonEmpty.length}`);
 console.log(`  usage:                   ${formatUsage(defaulted.usage)}`);
 console.log(
-  "\n  The blocks are billed either way. A UI streaming thinking text\n" +
-    "  without display='summarized' shows a long pause, not a bug.\n",
+  thinkingBlocks.length > 0 && nonEmpty.length === 0
+    ? "\n  There it is: the block is present and billed, and its text is\n" +
+        "  empty. A UI streaming thinking text without display='summarized'\n" +
+        "  shows a long pause, not a bug.\n"
+    : "\n  (No thinking blocks this run - adaptive thinking decided the\n" +
+        "  question did not need it. Re-run, or raise --efforts.)\n",
 );
 
 console.log(

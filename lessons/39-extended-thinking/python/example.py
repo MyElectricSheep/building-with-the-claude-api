@@ -15,14 +15,13 @@ import time
 from course.blocks import format_usage, text_of, thinking_of
 from course.config import MODEL, create_client
 
+# Adaptive thinking DECIDES whether to think. An easy question gets no
+# thinking blocks at all - which is the feature working, not a failure. This
+# problem is hard enough to reliably trigger it.
 PROBLEM = (
-    "A deploy pipeline runs 4 minutes of unit tests, then 9 minutes of "
-    "integration tests, then a rollout in three stages 10 minutes apart. "
-    "The rollout aborts if canary error rate exceeds 0.5%. If a bad commit "
-    "lands at 14:00 and the canary trips at the second stage, what is the "
-    "earliest wall-clock time a rollback could complete, given a rollback "
-    "takes 90 seconds and someone must first notice the abort? State your "
-    "assumptions."
+    "A 3x3 grid holds each of the numbers 1-9 exactly once. Every row sums to "
+    "15 and both diagonals sum to 15. The centre cell is not 5. Either produce "
+    "such a grid or prove none exists. Reason carefully and show the argument."
 )
 
 
@@ -39,12 +38,16 @@ def run(client, effort: str, display: str) -> None:  # noqa: ANN001
     elapsed = time.monotonic() - started
     summaries = thinking_of(response)
 
+    blocks = [b for b in response.content if b.type == "thinking"]
     print(f"--- effort={effort} display={display} ---")
     print(f"  usage:    {format_usage(response.usage)}")
     print(f"  wall:     {elapsed:.1f}s")
-    print(f"  thinking: {len(summaries)} summarised block(s)")
+    print(f"  thinking: {len(blocks)} block(s), {len(summaries)} with readable text")
     if summaries:
         print(f"    {summaries[0][:180]}...")
+    elif not blocks:
+        # Not a failure: adaptive thinking decided this did not need it.
+        print("    (adaptive thinking chose not to think - that is the feature)")
     print(f"  answer:   {text_of(response).strip()[:220]}...\n")
 
 
@@ -73,10 +76,17 @@ def main() -> None:
     print(f"  thinking blocks present: {len(thinking_blocks)}")
     print(f"  with readable text:      {len(non_empty)}")
     print(f"  usage:                   {format_usage(response.usage)}")
-    print(
-        "\n  The blocks are billed either way. A UI streaming thinking text\n"
-        "  without display='summarized' shows a long pause, not a bug.\n"
-    )
+    if thinking_blocks and not non_empty:
+        print(
+            "\n  There it is: the block is present and billed, and its text is\n"
+            "  empty. A UI streaming thinking text without display='summarized'\n"
+            "  shows a long pause, not a bug.\n"
+        )
+    else:
+        print(
+            "\n  (No thinking blocks this run - adaptive thinking decided the\n"
+            "  question did not need it. Re-run, or raise --efforts.)\n"
+        )
 
     print(
         "effort controls reasoning depth and token spend. It is NOT a\n"

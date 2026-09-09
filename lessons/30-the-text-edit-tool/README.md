@@ -68,6 +68,13 @@ A sandboxed editor over `assets/sandbox/` (created and reset on each run). It gi
 Claude a small Python file with a real bug and asks it to fix it. You will see `view`,
 then `str_replace`, then the model's explanation.
 
+**Expect the model to probe first.** On the run this repository was verified against it
+tried `view /`, then `view /repo`, before `view .` — the first two were refused with
+`Path escapes the sandbox`, and it recovered and carried on. That is not noise: it is
+the path guard doing its job and the `is_error` result letting the model correct itself.
+A handler that raised instead of returning an error result would have ended the turn
+there.
+
 Every command goes through a path guard, a backup, and the single-match check. The
 example also sends a synthetic `undo_edit` call through the handler so you can see the
 error a model attempting it would receive.
