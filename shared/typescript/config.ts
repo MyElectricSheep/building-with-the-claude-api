@@ -44,12 +44,16 @@ export const MAX_TOKENS = Number(process.env.CLAUDE_MAX_TOKENS ?? 1024);
 export function requireEnv(name: string): string {
   const value = process.env[name];
   if (!value) {
-    throw new Error(
+    // A missing environment variable is a setup instruction, not a crash, so
+    // print it and exit rather than dumping a stack trace at someone who has
+    // simply not filled in .env yet. This mirrors Python's SystemExit.
+    process.stderr.write(
       `Missing ${name}.\n` +
         `Copy .env.example to .env and fill it in, then re-run with:\n` +
         `  npm run lesson -- <number>\n` +
-        `(the lesson runner loads .env automatically)`,
+        `(the lesson runner loads .env automatically)\n`,
     );
+    process.exit(1);
   }
   return value;
 }

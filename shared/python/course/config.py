@@ -46,7 +46,7 @@ def require_env(name: str) -> str:
         raise SystemExit(
             f"Missing {name}.\n"
             f"Copy .env.example to .env and fill it in, then re-run with:\n"
-            f"  uv run lesson <number> --python"
+            f"  uv run lesson <number>"
         )
     return value
 
