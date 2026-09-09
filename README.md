@@ -1,4 +1,4 @@
-# Building with the Claude API — modern TypeScript + Python companion
+# Building with the Claude API: modern TypeScript + Python companion
 
 A runnable companion to Anthropic's [**Building with the Claude API**](https://academy.claude.com/courses/building-with-the-claude-api)
 Academy course, updated for the **2026 Claude platform**.
@@ -12,7 +12,7 @@ Every coding lesson in the course has, in this repository:
 - and, where the original technique no longer works, a clearly labelled **legacy**
   file next to the modern replacement so you can see both.
 
-The course is excellent on architecture — prompting, evaluation, tool use, RAG, MCP,
+The course is great on architecture, prompting, evaluation, tool use, RAG, MCP,
 agents. Its _code_ spans several older API and SDK generations. The rule this
 repository follows:
 
