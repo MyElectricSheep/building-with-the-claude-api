@@ -101,7 +101,9 @@ def main() -> None:
         "What dynamic filtering (20260209 and later) actually does is run code\n"
         "that filters each search's results before they enter the context window.\n"
         "To see that, compare `input tokens per search` across many questions -\n"
-        "not totals on one.\n\n"
+        "not totals on one. On the verification run that normalisation did show\n"
+        "the filtered version cheaper per search (~10,100 vs ~13,600) even while\n"
+        "its total was higher - which is the whole reason to normalise.\n\n"
         "The version to use is still the newest your model supports; the reason\n"
         "is capability, not a benchmark you can run in ten seconds."
     )

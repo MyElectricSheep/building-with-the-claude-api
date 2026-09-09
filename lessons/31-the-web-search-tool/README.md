@@ -71,6 +71,11 @@ version searched _twice_ and therefore used _more_ input tokens — in both lang
 single-question A/B mostly measures search count. Dynamic filtering works per search, so
 `input tokens per search` is the number to normalise on, over many questions.
 
+Normalising is not a hedge — it changes the answer. On the verification run the filtered
+version came out **cheaper per search** (~10,100 vs ~13,600 input tokens) while its
+_total_ was higher, because it searched twice. Both facts are true; only one of them is
+about filtering.
+
 Use the newest version your model supports because of what it can do, not because of a
 saving you can demonstrate in ten seconds.
 
