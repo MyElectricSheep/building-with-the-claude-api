@@ -5,7 +5,7 @@ Two badges are used in this repository, and they mean different things:
 | Badge                 | Means                                                                                                                                                                                          |
 | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `STATICALLY VERIFIED` | Type-checks under `tsc --strict`, lints clean under `ruff`, its pure logic is covered by unit tests, and it was executed as far as it goes without credentials. **No live API call was made.** |
-| `LIVE API VERIFIED`   | Actually executed end-to-end against the Claude API (and Voyage, where relevant) with real credentials, and its output inspected.                                                              |
+| `LIVE API VERIFIED`   | Actually executed end-to-end against the Claude API, in **both languages**, and its output inspected — not just its exit code.                                                                 |
 
 Nothing in this file claims a lesson was tested when it was not.
 
@@ -13,122 +13,145 @@ Nothing in this file claims a lesson was tested when it was not.
 
 ## Current state
 
-**Every lesson is `STATICALLY VERIFIED`.** The live pass has not been run: this session
-had no `ANTHROPIC_API_KEY` or `VOYAGE_API_KEY`, and using someone's production key
-without asking is not a thing to do on your behalf.
+**63 of 67 lessons are `LIVE API VERIFIED`** against `claude-sonnet-5` and
+`claude-haiku-4-5`, on **9 September 2026**, in both Python and TypeScript.
 
-### What "statically verified" covered
+|                                            | Lessons                                                     | Status                |
+| ------------------------------------------ | ----------------------------------------------------------- | --------------------- |
+| Ran live, both languages, output inspected | 1, 2, 3–8, 9–19, 20–31, 32, 33, 37, 39–46, 47–56, 60, 61–67 | `LIVE API VERIFIED`   |
+| Cannot run without `VOYAGE_API_KEY`        | **34, 35, 36, 38**                                          | `STATICALLY VERIFIED` |
+| No code by design (documentation lessons)  | 57, 58, 59                                                  | n/a                   |
 
-Run these yourself; they need no credentials and take about ten seconds:
+The four RAG lessons that need a Voyage key were confirmed to **fail cleanly** with an
+actionable message rather than a stack trace — that path is verified, the retrieval is
+not.
+
+### Static checks, which need no credentials
 
 ```bash
-npm run check    # tsc --noEmit + prettier --check + node --test + scripts/check-repo.mjs
-uv run pytest
+npm run check    # tsc --noEmit + prettier --check + 74 tests + scripts/check-repo.mjs
+uv run pytest    # 73 tests
 uv run ruff check .
 ```
 
-| Check                                         | Covers                                                                                                                                                    |
-| --------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `tsc --noEmit` (strict, `erasableSyntaxOnly`) | Every `.ts` file in `lessons/` and `shared/`, including `legacy.ts` files                                                                                 |
-| `ruff check`                                  | Every `.py` file, same scope                                                                                                                              |
-| `node --test`                                 | 72 tests over the pure modules                                                                                                                            |
-| `pytest`                                      | 71 tests over the mirrored Python modules                                                                                                                 |
-| `scripts/check-repo.mjs`                      | Structure: 67 lessons, badges consistent across three tables, no hardcoded model ids, no unresolvable imports, no committed secrets, `.env.example` empty |
-
-### Lessons that were fully executed, with no credentials
-
-These run end to end without an API key, and were run:
-
-| Lesson                                                   | What ran                                                                                                   |
-| -------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
-| [02](../lessons/02-getting-an-api-key/)                  | Credential doctor, both languages                                                                          |
-| [13 `legacy`](../lessons/13-model-based-grading/)        | The f-string interpolation bug, both languages                                                             |
-| [14](../lessons/14-code-based-grading/)                  | Every code grader, both languages                                                                          |
-| [22](../lessons/22-tool-functions/)                      | Every tool function and failure path, both languages                                                       |
-| [33](../lessons/33-text-chunking-strategies/)            | Chunking comparison, both languages                                                                        |
-| [37](../lessons/37-bm25-lexical-search/)                 | BM25 ranking and IDF weights, both languages                                                               |
-| [44 `--offline`](../lessons/44-rules-of-prompt-caching/) | Static cache-invalidator audit, both languages                                                             |
-| [47](../lessons/47-introducing-mcp/)                     | In-process MCP discovery, both languages                                                                   |
-| [48](../lessons/48-mcp-clients/)                         | **All three transports** — in-process, stdio subprocess, Streamable HTTP over a real port — both languages |
-| [49](../lessons/49-project-setup/)                       | SDK generation doctor, both languages                                                                      |
-| [50](../lessons/50-defining-tools-with-mcp/)             | Tool calls and every error path, both languages; `legacy.py` shows the real `ModuleNotFoundError`          |
-| [51](../lessons/51-the-server-inspector/)                | Full server walk, both languages                                                                           |
-| [52 `--no-claude`](../lessons/52-implementing-a-client/) | High-level `Client` and low-level `ClientSession` over stdio, both languages                               |
-| [53](../lessons/53-defining-resources/)                  | Resources, templates, and the not-found path, both languages                                               |
-| [54 `--no-claude`](../lessons/54-accessing-resources/)   | Resource discovery including the **binary blob branch**, both languages                                    |
-| [55](../lessons/55-defining-prompts/)                    | Prompt rendering and the missing-argument error, both languages; `legacy.py` shows the removed import      |
-| [56 `--no-claude`](../lessons/56-prompts-in-the-client/) | Prompt menu and message conversion, both languages                                                         |
-| [60](../lessons/60-enhancements-with-mcp-servers/)       | Command and `.mcp.json` generation, both languages                                                         |
-| [67 `--decide-only`](../lessons/67-workflows-vs-agents/) | The tier decision over eight tasks, both languages                                                         |
-
-That is **19 lessons executed end to end**, plus the SDK surfaces below.
-
-### SDK facts verified by introspection, not by reading docs
-
-| Claim                                                                      | How it was checked                             |
-| -------------------------------------------------------------------------- | ---------------------------------------------- |
-| Python SDK v1 removed `temperature` from `messages.create`                 | `inspect.signature` — the parameter is absent  |
-| `output_format` absent from `create`, present on `parse`                   | same                                           |
-| `client.files.upload/delete/download/retrieve_metadata` exist outside beta | attribute check, both SDKs                     |
-| `client.beta.messages.tool_runner` / `.toolRunner` exist                   | attribute check, both SDKs                     |
-| `betaZodTool` is exported from `@anthropic-ai/sdk/helpers/beta/zod`        | import check                                   |
-| `mcp.server.fastmcp` raises `ModuleNotFoundError` in v2                    | import attempt against `mcp` 2.2.0             |
-| `MCPServer` is at `mcp.server.mcpserver`                                   | import check                                   |
-| MCP v2 uses `resource_templates`, not `resourceTemplates`                  | attribute error, then confirmed                |
-| `web_search_20260318` is a current version                                 | fetched from the live tool reference           |
-| `text_editor_20250728` commands are view/str_replace/create/insert         | fetched from the live docs; `undo_edit` absent |
+`scripts/check-repo.mjs` fails on a hardcoded model id outside the config modules, a
+status badge that disagrees across the three index tables, a README run command naming
+the wrong lesson, an unresolvable import, or anything resembling a committed secret.
 
 ---
 
-## Running the live pass
+## What the live pass changed
 
-Once `.env` has an `ANTHROPIC_API_KEY`:
+Running the code found **nine** problems that static checking could not. Six were in this
+repository's own material; three were facts about the API that its documentation had
+wrong. That ratio is the argument for doing a live pass at all.
+
+### Facts about the API that were wrong
+
+| Finding                                                                                                                                                                      | Broke                                                | Evidence                                                                                                |
+| ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| **`output_config.effort` is not universal.** `claude-haiku-4-5` → `400 This model does not support the effort parameter.` Accepted on Sonnet 4.6, Sonnet 5, Opus 4.6+, Fable | Lesson **64** outright                               | Tested against all four models. Now encoded as `supportsEffort()` / `supports_effort()` with unit tests |
+| **`count_tokens` rejects a `file` source.** `400 File sources are not supported in the token counting endpoint.` — while `messages.create` accepts the identical block       | Lesson **40** outright                               | Lesson 40 now measures from `usage.input_tokens` and teaches the limit                                  |
+| **The Models API returns dated ids** (`claude-haiku-4-5-20251001`) where the documented id is undated (`claude-haiku-4-5`)                                                   | Lesson **1** reported a working model as unavailable | Both forms confirmed to resolve; the check now matches dated aliases                                    |
+
+### Claims this repository could not support
+
+The same mistake five times, and worth naming: **a single-sample A/B against a
+non-deterministic model does not support a performance claim.**
+
+| Lesson                        | The claim                                                  | What actually happened                                                                                                                       |
+| ----------------------------- | ---------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| **29** fine-grained streaming | eager streaming lowers time-to-first-fragment              | It was _slower_ and produced _fewer, larger_ fragments — and the two runs generated different payloads, so the timings were never comparable |
+| **31** web search             | dynamic filtering reduces tokens                           | The newer tool used **more** input tokens in both languages, because the model chose to search twice instead of once                         |
+| **39** extended thinking      | shows thinking summaries at each effort                    | The chosen problem was easy enough that adaptive thinking **declined to think** — zero blocks                                                |
+| **61** evaluator-optimizer    | the loop iterates on failures                              | Converged 7/7 on round 1; the loop never ran                                                                                                 |
+| **66** environment inspection | the blind agent "plausibly succeeds and actually does not" | Both agents passed                                                                                                                           |
+
+All five now report the normalising figure (tokens per search, fragments per KB) and say
+plainly what the measurement can and cannot show. Lessons 39 and 61 were given harder
+inputs so they demonstrate their mechanism; 66 was reframed around what is true whatever
+the run does — the blind agent _claimed_ success and had no way to know.
+
+### Gold labels that could not be defended
+
+The eval lessons disagreed with the model on three cases, and on inspection **the model
+was defensible and the labels were not**: the `urgency` rubric was undecidable at the
+medium/high boundary. Fixed by making the rule decidable rather than by fitting the
+labels to the model — see the `labelling_rule` field now in both datasets, and the
+commit for the per-label audit.
+
+---
+
+## What each lesson actually demonstrated
+
+The runs worth citing, because they prove a claim rather than merely exiting 0:
+
+| Lesson | Live evidence                                                                                                                                                                   |
+| ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **06** | Python `TypeError` locally, TypeScript `400 temperature is deprecated for this model` — the two different failure modes, as documented                                          |
+| **08** | `400 This model does not support assistant message prefill`                                                                                                                     |
+| **23** | Both adoption errors reproduced: `additionalProperties: true is not supported`, and `tool_choice.tool.strict: Extra inputs are not permitted`                                   |
+| **24** | Blocks came back as `thinking, text, tool_use` — so `content[1]` was **text** and the Academy pattern would have failed. The repository's central claim, proven                 |
+| **28** | 3 tool calls in one turn (2 turns total) vs 1-per-turn under `disable_parallel_tool_use` (4 turns)                                                                              |
+| **30** | The model probed `view /` and `view /repo`, was refused by the path guard, and recovered from the `is_error` results                                                            |
+| **39** | 1 readable thinking block at both efforts; with `display` defaulted, 1 block present with **empty text** — the surprise, demonstrated                                           |
+| **40** | base64 and `file_id` cost **identically** (733 tokens): a `file_id` saves the upload, not the tokens                                                                            |
+| **42** | **5 citations checked, 0 mismatched** against the source text; and the `citations` + `output_config.format` 400                                                                 |
+| **43** | Stable prefix: ~7,845 tokens read from cache each turn. With a timestamp injected: **0 reads, every turn**                                                                      |
+| **45** | Agent loop billed-equivalent 35,444 uncached → 13,980 with one line of top-level `cache_control`                                                                                |
+| **46** | Produced and downloaded a real 71 KB PNG chart from the sandbox                                                                                                                 |
+| **48** | All three transports — in-process, stdio subprocess, Streamable HTTP on a real port — in both languages                                                                         |
+| **50** | The real `ModuleNotFoundError` for `mcp.server.fastmcp`, whose message names `MCPServer` and the `mcp<2` pin                                                                    |
+| **54** | The binary `blob` branch fired on a real PNG resource                                                                                                                           |
+| **61** | 7/9 → 8/9 → 7/9, stopping on the round limit — the loop _and_ the bound                                                                                                         |
+| **62** | 3.4× speedup, sequential vs concurrent, same specialists and input                                                                                                              |
+| **63** | All four gates passed with real content: 12 events, justified SEV1, 331 words, 8 owned actions                                                                                  |
+| **64** | All four routes correct including the `other` fallback, with `effort` shown as `n/a (unsupported)` on the Haiku branches                                                        |
+| **65** | The narrow agent's `issue_refund(txn_9002, 900.0)` was **REJECTED — exceeds the 50.0 limit; needs human approval**, while the broad agent's audit log is two opaque SQL strings |
+
+---
+
+## Running it yourself
 
 ```bash
-# The cheapest meaningful smoke test - lesson 1 spends no output tokens at all
-npm run lesson -- 01
+cp .env.example .env      # ANTHROPIC_API_KEY, and VOYAGE_API_KEY for 34/36/38
+npm run lesson -- 01      # spends no output tokens; verifies the key and the models
 uv run lesson 01
-
-# Then work through a module
-for n in 03 04 05 07 08; do npm run lesson -- $n; done
 ```
 
-Lessons 34, 36 and 38 additionally need `VOYAGE_API_KEY`.
+### Cost
 
-### Cost, roughly
+The full pass — every lesson, both languages, plus re-runs of the ten lessons that were
+fixed — was well under **$5** at the default models. Uneven, though:
 
-At the default models (`claude-sonnet-5` / `claude-haiku-4-5`), running **every**
-lesson once costs on the order of a few US dollars. The distribution is uneven:
+| Lesson         | Why it costs more                                                        |
+| -------------- | ------------------------------------------------------------------------ |
+| **31**         | Web search is $10/1,000 searches on top of tokens, and results are large |
+| **39**         | Thinking tokens. `--efforts low,high` avoids the `max` sweep             |
+| **46**         | Long sandbox turns                                                       |
+| **45**         | Four agent loops over a deliberately large system prompt                 |
+| **65**, **66** | Multi-turn agent loops, ~40–50s each                                     |
 
-| Lesson                                                                           | Why it costs more                                                                               |
-| -------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
-| [39](../lessons/39-extended-thinking/)                                           | `max` effort on a hard problem generates a lot of thinking tokens. `--efforts low,high` cuts it |
-| [31](../lessons/31-the-web-search-tool/)                                         | Web search is billed per search ($10/1,000) on top of tokens, and results are large             |
-| [46](../lessons/46-code-execution-and-files-api/)                                | Long sandbox turns                                                                              |
-| [45](../lessons/45-prompt-caching-in-action/)                                    | Four agent loops over a deliberately large system prompt                                        |
-| [15](../lessons/15-prompt-engineering/), [19](../lessons/19-providing-examples/) | Several prompt variants × several cases                                                         |
+Everything else is cents. Spend cannot be measured from a standard API key — the Admin
+API (`/v1/organizations/cost_report`) requires an `sk-ant-admin…` key, and there is no
+balance endpoint at all. Remaining credit is Console-only.
 
-Everything else is cents.
+### What a live pass should check beyond "it ran"
 
-### What a live pass should check, beyond "it ran"
+The `legacy.*` files are expected to fail, and each detects which case it is in:
 
-The `legacy.*` files are the interesting ones, because they are **expected to fail** and
-each one detects which case it is in:
+| Lesson | On `claude-sonnet-5`                                            | On a pre-4.7 model |
+| ------ | --------------------------------------------------------------- | ------------------ |
+| 06     | Python `TypeError`; TypeScript 400                              | accepted           |
+| 08     | 400 on the prefill                                              | accepted           |
+| 39     | 400 on `budget_tokens`                                          | accepted           |
+| 46     | 400 on the tool version, or 0 blocks found by the legacy parser | —                  |
 
-| Lesson                                                     | Expected on `claude-sonnet-5`                                            | Expected on an older model |
-| ---------------------------------------------------------- | ------------------------------------------------------------------------ | -------------------------- |
-| [03 `legacy`](../lessons/03-making-a-request/)             | prints the block types; positional access may or may not work            | same, more likely to work  |
-| [06 `legacy`](../lessons/06-temperature/)                  | Python: `TypeError` locally. TS: **400**                                 | accepted                   |
-| [08 `legacy`](../lessons/08-structured-data/)              | **400** on the prefill                                                   | accepted                   |
-| [39 `legacy`](../lessons/39-extended-thinking/)            | **400** on `budget_tokens`                                               | accepted                   |
-| [46 `legacy`](../lessons/46-code-execution-and-files-api/) | either a 400 on the tool version, or 0 blocks found by the legacy parser | —                          |
-
-A legacy file that _succeeds_ on a current model is a finding worth reporting, not a
-pass.
+**A legacy file that succeeds on a current model is a finding, not a pass.**
 
 ---
 
 ## Updating this file
 
-When you complete a live pass, change the badge for the lessons you ran and say which
-model you ran them on. A verification claim without a model is not a claim.
+When you re-run, change the badge only for lessons you actually ran, and say which model.
+A verification claim without a model is not a claim.

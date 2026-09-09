@@ -37,9 +37,15 @@ Verification badges used in this repo:
 | Badge                 | Meaning                                                                                |
 | --------------------- | -------------------------------------------------------------------------------------- |
 | `STATICALLY VERIFIED` | Type-checks, lints, and its pure logic is unit-tested — but no live API call was made. |
-| `LIVE API VERIFIED`   | Actually executed against the Claude API with real credentials.                        |
+| `LIVE API VERIFIED`   | Actually executed against the Claude API, in both languages, and its output inspected. |
 
-The current verification state of every lesson is in [`docs/VERIFICATION.md`](docs/VERIFICATION.md).
+**63 of 67 lessons are `LIVE API VERIFIED`** against `claude-sonnet-5` and
+`claude-haiku-4-5` (9 September 2026). The four that are not — 34, 35, 36, 38 — need a
+`VOYAGE_API_KEY`; their missing-key path is verified, their retrieval is not.
+
+Running the code found nine things static checking could not, including three facts about
+the API this repository had wrong. All of them, and what each lesson actually
+demonstrated live, are in [`docs/VERIFICATION.md`](docs/VERIFICATION.md).
 
 ---
 

@@ -73,3 +73,15 @@ scripts/check-repo.mjs   structural checks
 
 `docs/VERIFICATION.md` distinguishes `STATICALLY VERIFIED` from `LIVE API VERIFIED`.
 Do not move a lesson to the second without actually running it, and say which model.
+
+63 of 67 lessons are currently live-verified. The four that are not (34, 35, 36, 38)
+need a `VOYAGE_API_KEY`.
+
+**Exit code 0 is not verification.** The live pass found five lessons that exited
+cleanly while demonstrating nothing — a rubric that passed on round one, an A/B whose
+two runs generated different payloads, a "hard" problem the model found easy. When you
+change a lesson, read its _output_ and ask whether the thing it claims actually happened.
+
+**Never fit the data to the model.** When the model disagreed with a gold label, the fix
+was to make the labelling rule decidable, not to change the label to match. The
+`labelling_rule` field in both eval datasets exists so every label can be argued with.
